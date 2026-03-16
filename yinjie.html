@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>C大调音阶听力练习</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(135deg, #463222 0%, #1b0e04 100%);
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      margin-top: 7vw;
+    }
+    h1 {
+      font-size: 1.28rem;
+      margin-bottom: 5vw;
+      color: #ffeac8;
+      letter-spacing: 2px;
+      text-shadow: 0 1px 5px #20130688;
+    }
+    .controls {
+      margin-bottom: 5vw;
+      display: flex;
+      justify-content: center;
+      gap: 3vw;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .controls select {
+      padding: 6px 1vw;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1.5px solid #deb993;
+      background: #3f3122;
+      color: #ffeac8;
+      margin-right: 2vw;
+      margin-left: 4vw;
+      margin-bottom: 2vw;
+    }
+    .controls select:focus {
+      outline: 2px solid #c4a277;
+    }
+    .controls button {
+      padding: 2vw 5vw;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: none;
+      background: #915930;
+      color: #fff9f2;
+      cursor: pointer;
+      box-shadow: 0 2px 9px #2115081a;
+      transition: background 0.18s;
+      min-width: 76px;
+      margin-bottom: 2vw;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .controls button:active {
+      background: #4e331a;
+      color: #ffe8bf;
+    }
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4vw;
+      max-width: 97vw;
+      margin: 0 auto 5vw auto;
+      justify-items: center;
+      align-items: center;
+    }
+    .key {
+      width: 16vw;
+      min-width: 48px;
+      max-width: 75px;
+      height: 16vw;
+      min-height: 48px;
+      max-height: 75px;
+      border-radius: 50%;
+      background: #2d1a0d;
+      border: 2px solid #b99271;
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: background 0.15s, border 0.15s, color 0.13s;
+      box-shadow: 2px 3px 11px 0 #321b0a2b, 0 1px #b9927199 inset;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      outline: none;
+      position: relative;
+      color: #ffe5ba;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .key:active, .key.playing {
+      background: #604027;
+      border-color: #ffd499;
+      color: #fff3e0;
+    }
+    .upper {
+      position: relative;
+    }
+    .upper:before {
+      content: '·';
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      color: #ffd68b;
+    }
+    .upper2 {
+      position: relative;
+    }
+    .upper2:before {
+      content: '··';
+      position: absolute;
+      top: -17px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      color: #ffc683;
+      letter-spacing: 0.3px;
+    }
+    #answer {
+      margin-top: 2vw;
+      font-size: 1.08rem;
+      color: #ffeabf;
+      min-height: 30px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      text-shadow: 0 1px 8px #1b0703a6;
+    }
+    @media (max-width: 450px) {
+      body { margin-top: 4vw;}
+      h1 { font-size: 1.06rem;}
+      .key {
+        width: 17vw; height: 17vw;
+        min-width: 36px; min-height: 36px; max-width: 48px; max-height: 48px;
+        font-size: 5vw;
+      }
+      .controls button { font-size: 0.94rem; padding: 2vw 3vw; min-width: 54px; }
+      .controls select { font-size: 0.94rem;}
+      #answer { font-size: 0.99rem;}
+    }
+  </style>
+</head>
+<body>
+  <h1>C大调数字音阶键盘练习</h1>
+  <div class="controls">
+    <select id="toneSelect" title="音色选择">
+      <option value="piano">钢琴</option>
+      <option value="guitar">吉他</option>
+      <option value="flute">笛子</option>
+      <option value="erhu">二胡</option>
+      <option value="xiao">萧</option>
+      <option value="marimba">马林巴琴</option>
+      <option value="guzheng">古筝</option>
+      <option value="synth">电子琴</option>
+      <option value="harmonica">口琴</option>
+    </select>
+    <button id="practiceBtn">练习</button>
+    <button id="repeatBtn">再听一次</button>
+    <button id="answerBtn">查看答案</button>
+  </div>
+  <div class="keys" id="keys"></div>
+  <div id="answer"></div>
+  <script>
+    const NOTES = [
+      { label: "1", freq: 261.63 },
+      { label: "2", freq: 293.66 },
+      { label: "3", freq: 329.63 },
+      { label: "4", freq: 349.23 },
+      { label: "5", freq: 392.00 },
+      { label: "6", freq: 440.00 },
+      { label: "7", freq: 493.88 },
+      { label: "<span class='upper'>1</span>", freq: 523.25 },
+      { label: "<span class='upper'>2</span>", freq: 587.33 },
+      { label: "<span class='upper'>3</span>", freq: 659.25 },
+      { label: "<span class='upper'>4</span>", freq: 698.46 },
+      { label: "<span class='upper'>5</span>", freq: 783.99 },
+      { label: "<span class='upper'>6</span>", freq: 880.00 },
+      { label: "<span class='upper'>7</span>", freq: 987.77 },
+      { label: "<span class='upper2'>1</span>", freq: 1046.50 }
+    ];
+    const labelText = [
+      "1", "2", "3", "4", "5", "6", "7",
+      "高音1", "高音2", "高音3", "高音4", "高音5", "高音6", "高音7", "最高音1"
+    ];
+    const keysDiv = document.getElementById('keys');
+    const practiceBtn = document.getElementById('practiceBtn');
+    const repeatBtn = document.getElementById('repeatBtn');
+    const answerBtn = document.getElementById('answerBtn');
+    const answerDiv = document.getElementById('answer');
+    const toneSelect = document.getElementById('toneSelect');
+    let keyButtons = [];
+    let lastRandomIdx = null;
+
+    // 生成按键
+    NOTES.forEach((note, i) => {
+      const btn = document.createElement('button');
+      btn.className = "key";
+      btn.innerHTML = note.label;
+      btn.onclick = () => playNoteWithTone(note.freq, btn);
+      keysDiv.appendChild(btn);
+      keyButtons.push(btn);
+    });
+
+    let audioCtx;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playNoteWithTone(freq, keyElement) {
+      const tone = toneSelect.value;
+      switch (tone) {
+        case "piano":     playPiano(freq, keyElement); break;
+        case "guitar":    playGuitar(freq, keyElement); break;
+        case "flute":     playFlute(freq, keyElement); break;
+        case "erhu":      playErhu(freq, keyElement); break;
+        case "xiao":      playXiao(freq, keyElement); break;
+        case "marimba":   playMarimba(freq, keyElement); break;
+        case "guzheng":   playGuzheng(freq, keyElement); break;
+        case "synth":     playSynth(freq, keyElement); break;
+        case "harmonica": playHarmonica(freq, keyElement); break;
+        default: playPiano(freq, keyElement);
+      }
+    }
+
+    // 钢琴
+    function playPiano(freq, keyElement) {
+      const ctx = getAudioCtx();
+      const duration = 1.0;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0.18, ctx.currentTime);
+      baseGain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + duration * 0.13);
+      baseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      [1,3,5,7].forEach((h,k)=> {
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq * h;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(1 / h, ctx.currentTime);
+        osc.connect(gain).connect(baseGain);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+        if (k===0 && keyElement) {
+          keyElement.classList.add('playing');
+          osc.onended = () => keyElement.classList.remove('playing');
+        }
+      });
+      baseGain.connect(ctx.destination);
+    }
+    // 吉他
+    function playGuitar(freq, keyElement) {
+      const ctx = getAudioCtx();
+      const duration = 1.0;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0.14, ctx.currentTime);
+      baseGain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + duration * 0.09);
+      baseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      [1,2,3].forEach( (h,ix)=>{
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.value = freq * h;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(1.15/h, ctx.currentTime);
+        osc.connect(gain).connect(baseGain);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+        if (ix===0 && keyElement) {
+          keyElement.classList.add('playing');
+          osc.onended = () => keyElement.classList.remove('playing');
+        }
+      });
+      // 拨弦噪声
+      const noise = ctx.createBufferSource();
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.03, ctx.sampleRate);
+      const arr = buf.getChannelData(0);
+      for(let i=0;i<arr.length;i++) arr[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.004));
+      noise.buffer = buf;
+      const ng = ctx.createGain();
+      ng.gain.value = 0.13;
+      noise.connect(ng).connect(baseGain);
+      noise.start(ctx.currentTime);
+
+      baseGain.connect(ctx.destination);
+    }
+    // 笛子
+    function playFlute(freq, keyElement) {
+      const ctx = getAudioCtx();
+      const duration = 1.0;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0.17, ctx.currentTime);
+      baseGain.gain.linearRampToValueAtTime(0.13, ctx.currentTime + duration * 0.23);
+      baseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      [1,2].forEach((h,k)=>{
+        const osc = ctx.createOscillator();
+        osc.type = (h===1) ? 'sine' : 'triangle';
+        osc.frequency.value = freq * h;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(h===1?1.0:0.19, ctx.currentTime);
+        osc.connect(gain).connect(baseGain);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+        if (k===0 && keyElement) {
+          keyElement.classList.add('playing');
+          osc.onended = () => keyElement.classList.remove('playing');
+        }
+      });
+      baseGain.connect(ctx.destination);
+    }
+    // 二胡
+    function playErhu(freq, keyElement) {
+      const ctx = getAudioCtx();
+      const duration = 1.0;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0.15, ctx.currentTime);
+      baseGain.gain.linearRampToValueAtTime(0.09, ctx.currentTime + duration * 0.19);
+      baseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      [1,2].forEach((h,k)=>{
+        const osc = ctx.createOscillator();
+        osc.type = (h===1 ? 'sawtooth' : 'triangle');
+        osc.frequency.value = freq * h;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(h===1?0.92:0.13, ctx.currentTime);
+        osc.connect(gain).connect(baseGain);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+        if (k === 0 && keyElement) {
+          keyElement.classList.add('playing');
+          osc.onended = () => keyElement.classList.remove('playing');
+        }
+      });
+      baseGain.connect(ctx.destination);
+    }
+    // 萧
+    function playXiao(freq, keyElement) {
+      const ctx = getAudioCtx();
+      const duration = 1.0;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0.16, ctx.currentTime);
+      baseGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + duration * 0.58);
+      baseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      // 主体为正弦波，弱三角谐波
+      [1,2].forEach((h,k)=>{
+        const osc = ctx.createOscillator();
+        osc.type = (h===1)?'sine':'triangle';
+        osc.frequency.value = freq * h;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(h===1?0.85:0.21, ctx.currentTime);
+        osc.connect(gain).connect(baseGain);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+        if (k===0 && keyElement) {
+          keyElement.classList.add('playing');
+          osc.onended = () => keyElement.classList.remove('playing');
+        }
+      });
+      // 气息噪声
+      const noise = ctx.createBufferSource();
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.4, ctx.sampleRate);
+      const arr = buf.getChannelData(0);
+      for(let i=0;i<arr.length;i++) arr[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.16));
+      noise.buffer = buf;
+      const ng = ctx.createGain();
+      ng.gain.value = 0.05;
+      noise.connect(ng).connect(baseGain);
+      noise.start(ctx.currentTime);
+
+      baseGain.connect(ctx.destination);
+    }
+    // 马林巴琴
+    function playMarimba(freq, keyElement) {
+      const ctx = getAudioCtx();
+      const duration = 1.0;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0.17, ctx.currentTime);
+      baseGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + duration * 0.13);
+      baseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      [1,4,10].forEach((h,k)=>{
+        const osc = ctx.createOscillator();
+        osc.type = (h===1?'square':'sine');
+        osc.frequency.value = freq * h;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime( h===1?1.0:(h===4?0.15:0.07), ctx.currentTime );
+        osc.connect(gain).connect(baseGain);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+        if (k===0 && keyElement) {
+          keyElement.classList.add('playing');
+          osc.onended = () => keyElement.classList.remove('playing');
+        }
+      });
+      baseGain.connect(ctx.destination);
+    }
+    // 古筝
+    function playGuzheng(freq, keyElement) {
+      const ctx = getAudioCtx();
+      const duration = 1.0;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0.15, ctx.currentTime);
+      baseGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + duration * 0.14);
+      baseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      [1,2,5].forEach((h,k)=>{
+        const osc = ctx.createOscillator();
+        osc.type = (h===1?'triangle':'sawtooth');
+        osc.frequency.value = freq * h;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(h===1?1.0:0.25, ctx.currentTime);
+        osc.connect(gain).connect(baseGain);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+        if (k===0 && keyElement) {
+          keyElement.classList.add('playing');
+          osc.onended = () => keyElement.classList.remove('playing');
+        }
+      });
+      // 拨弦噪声
+      const noise = ctx.createBufferSource();
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.07, ctx.sampleRate);
+      const arr = buf.getChannelData(0);
+      for(let i=0;i<arr.length;i++) arr[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.008));
+      noise.buffer = buf;
+      const ng = ctx.createGain();
+      ng.gain.value = 0.08;
+      noise.connect(ng).connect(baseGain);
+      noise.start(ctx.currentTime);
+
+      baseGain.connect(ctx.destination);
+    }
+    // 电子琴
+    function playSynth(freq, keyElement) {
+      const ctx = getAudioCtx();
+      const duration = 1.0;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0.17, ctx.currentTime);
+      baseGain.gain.linearRampToValueAtTime(0.10, ctx.currentTime + duration * 0.13);
+      baseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      [1,2].forEach((h,k)=>{
+        const osc = ctx.createOscillator();
+        osc.type = (h===1?'square':'sawtooth');
+        osc.frequency.value = freq * h;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(h===1?1.0:0.19, ctx.currentTime);
+        osc.connect(gain).connect(baseGain);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+        if (k===0 && keyElement) {
+          keyElement.classList.add('playing');
+          osc.onended = () => keyElement.classList.remove('playing');
+        }
+      });
+      baseGain.connect(ctx.destination);
+    }
+    // 口琴
+    function playHarmonica(freq, keyElement) {
+      const ctx = getAudioCtx();
+      const duration = 1.0;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0.15, ctx.currentTime);
+      baseGain.gain.linearRampToValueAtTime(0.11, ctx.currentTime + duration * 0.17);
+      baseGain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      [1,2].forEach((h,k)=>{
+        const osc = ctx.createOscillator();
+        osc.type = (h===1?'sawtooth':'sine');
+        osc.frequency.value = freq * h;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(h===1?1.0:0.11, ctx.currentTime);
+        osc.connect(gain).connect(baseGain);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+        if (k===0 && keyElement) {
+          keyElement.classList.add('playing');
+          osc.onended = () => keyElement.classList.remove('playing');
+        }
+      });
+      baseGain.connect(ctx.destination);
+    }
+    // 练习模式、repeat、答案
+    function playPractice(idx) {
+      playNoteWithTone(NOTES[7].freq, keyButtons[7]);
+      setTimeout(()=>{ playNoteWithTone(NOTES[idx].freq); }, 800);
+    }
+    practiceBtn.onclick = () => {
+      answerDiv.innerText = "";
+      const idx = Math.floor(Math.random() * NOTES.length);
+      lastRandomIdx = idx;
+      playPractice(idx);
+    };
+    repeatBtn.onclick = () => {
+      if (lastRandomIdx !== null) playPractice(lastRandomIdx);
+      else answerDiv.innerText = "请先点击 '练习' 开始一次练习";
+    };
+    answerBtn.onclick = () => {
+      if (lastRandomIdx !== null)
+        answerDiv.innerText = `刚才随机播放的音阶是：${labelText[lastRandomIdx]}`;
+      else
+        answerDiv.innerText = "请先点击 '练习' 按钮开始一次练习！";
+    };
+  </script>
+</body>
+</html>
