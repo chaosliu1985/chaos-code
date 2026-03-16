@@ -1,39 +1,405 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xiaoliumin Fortune Telling Application</title>
+    <title>小六壬占卜</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 50px; }
-        h1 { color: #333; }
-        .fortune { background-color: #fff; border: 1px solid #ccc; padding: 20px; border-radius: 10px; display: inline-block; }
-        button { padding: 10px 15px; font-size: 16px; cursor: pointer; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: '微软雅黑', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .title {
+            text-align: center;
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="time"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="time"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #555;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .result-section {
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .course-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .course-meaning {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .fortune-level {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .interpretation {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .interpretation-title {
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .interpretation-content {
+            color: #666;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .course-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .course-item-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .course-item-info {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
-    <h1>Xiaoliumin Fortune Telling Application</h1>
-    <div class="fortune" id="fortune">
-        <p>Your fortune will appear here!</p>
+    <div class="container">
+        <h1 class="title">小六壬占卜</h1>
+        <p class="subtitle">传统古法，严肃问答</p>
+
+        <div class="info-box">
+            💡 小六壬是传统占卜方法，选择当前时间或输入具体时间进行推演。心中想好问题，再开始，敬鬼神，知天命。
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label>选择时间</label>
+                <input type="time" id="timeInput">
+            </div>
+
+            <div class="input-group">
+                <label>或输入小时数（0-23）</label>
+                <input type="number" id="hourInput" min="0" max="23" placeholder="例如：14">
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="useCurrentTime()">使用当前时间</button>
+                <button class="btn-secondary" onclick="divinate()">开始占卜</button>
+            </div>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="result-box">
+                <div class="course-name" id="courseName"></div>
+                <div class="course-meaning" id="courseMeaning"></div>
+                <div class="fortune-level" id="fortuneLevel"></div>
+            </div>
+
+            <div class="interpretation">
+                <div class="interpretation-title">象征含义</div>
+                <div class="interpretation-content" id="symbolMeaning"></div>
+            </div>
+
+            <div class="interpretation">
+                <div class="interpretation-title">吉凶详解</div>
+                <div class="interpretation-content" id="fortuneDetail"></div>
+            </div>
+
+            <div class="interpretation">
+                <div class="interpretation-title">应用领域</div>
+                <div class="interpretation-content" id="applicationField"></div>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                <div class="interpretation-title">六壬课象总览</div>
+                <div class="course-grid" id="courseGrid"></div>
+            </div>
+        </div>
     </div>
-    <button onclick="tellFortune()">Tell my fortune</button>
 
     <script>
-        function randomFortune() {
-            const fortunes = [
-                "You will have a great day!",
-                "Something unexpected will happen today.",
-                "You will find what you are looking for.",
-                "A dream you have will come true.",
-                "You will meet someone special today."
-            ];
-            return fortunes[Math.floor(Math.random() * fortunes.length)];
+        const courses = {
+            0: {
+                name: '大安',
+                meaning: '大吉大利',
+                fortune: '吉',
+                symbolMeaning: '象征安定祥和，事事顺利。大安为六壬中最吉的课象，代表万事亨通、稳定发展。',
+                fortuneDetail: '大安课最为吉利，适合各种事宜。做事顺风顺水，投资有利，感情和睦，工作升迁在望。但需保持谦虚态度，勿骄勿躁。',
+                applicationField: '适合：求财、求职、结婚、出行、开业、考试等各类事宜。'
+            },
+            1: {
+                name: '留连',
+                meaning: '事多迟滞',
+                fortune: '凶',
+                symbolMeaning: '象征延迟阻滞，缓慢推进。留连课表示事情进展缓慢，会有多方面的牵绊和拖累。',
+                fortuneDetail: '留连课主缓慢，诸事不急。做事易遇波折，需要耐心等待，不可操之过急。投资需谨慎，易有纠纷。感情进展缓慢，需要时间磨合。',
+                applicationField: '需谨慎：财务往来易有拖延、感情难以突破、工作进展缓慢。'
+            },
+            2: {
+                name: '速喜',
+                meaning: '急速欢喜',
+                fortune: '吉',
+                symbolMeaning: '象征快速喜悦，好消息即将到来。速喜课代表事情发展迅速，有惊喜和欢乐。',
+                fortuneDetail: '速喜课主快速和喜事。有好消息来临，事情进展顺利且快速。投资有回报，感情会有进展，工作中获得认可。但要注意细节，莫因匆忙而出错。',
+                applicationField: '适合：寻求快速进展、期待好消息、感情表白、重要决定等。'
+            },
+            3: {
+                name: '赤口',
+                meaning: '多口舌是非',
+                fortune: '凶',
+                symbolMeaning: '象征口舌纷争，言语冲突。赤口课代表易有争执、诽谤和不和之事。',
+                fortuneDetail: '赤口课主争讼，易起口角。此时做事易招是非，言语要谨慎。容易有口舌之争，人际关系紧张。投资易有纠纷，感情易有冷战。需要低调做人，避免冲突。',
+                applicationField: '需避免：重要谈判、签约、表白、重大决定等容易起争执的事。'
+            },
+            4: {
+                name: '小吉',
+                meaning: '吉利有获',
+                fortune: '吉',
+                symbolMeaning: '象征小幸运，逐步改善。小吉课代表事情虽然不是大吉，但稳步向好发展。',
+                fortuneDetail: '小吉课主渐进之吉。虽然不是大成功，但事情在向好的方向发展。适合稳健做事，慢慢积累。有小的收获和进步，感情会升温，工作会有提升。',
+                applicationField: '适合：长期计划、稳健投资、感情培养、职业发展等需要耐心的事。'
+            },
+            5: {
+                name: '空亡',
+                meaning: '诸事皆空',
+                fortune: '凶',
+                symbolMeaning: '象征虚无缺失，事情落空。空亡课代表计划可能无法实现，容易功亏一篑。',
+                fortuneDetail: '空亡课最为不利，主虚无。此时不宜有大的行动和承诺。计划易告吹，投资易亏损，感情易变卦，工作易遇冷。需要静观其变，做好防守，等待时机。',
+                applicationField: '宜观望：大投资、重要合作、关键决定、求职等宜延期再做。'
+            }
+        };
+
+        function useCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('timeInput').value = `${hours}:${minutes}`;
         }
 
-        function tellFortune() {
-            const fortuneElement = document.getElementById('fortune');
-            fortuneElement.innerHTML = `<p>${randomFortune()}</p>`;
+        function getHourFromInput() {
+            const timeInput = document.getElementById('timeInput').value;
+            const hourInput = document.getElementById('hourInput').value;
+
+            if (timeInput) {
+                return parseInt(timeInput.split(':')[0]);
+            } else if (hourInput !== '') {
+                return parseInt(hourInput);
+            } else {
+                alert('请输入时间或小时数！');
+                return null;
+            }
         }
+
+        function divinate() {
+            const hour = getHourFromInput();
+            if (hour === null) return;
+
+            // 小六壬计算方法：使用时辰数模6来确定课象
+            const courseIndex = hour % 6;
+            const course = courses[courseIndex];
+
+            // 显示结果
+            document.getElementById('courseName').textContent = course.name;
+            document.getElementById('courseMeaning').textContent = course.meaning;
+            document.getElementById('fortuneLevel').textContent = `吉凶：${course.fortune}`;
+            document.getElementById('symbolMeaning').textContent = course.symbolMeaning;
+            document.getElementById('fortuneDetail').textContent = course.fortuneDetail;
+            document.getElementById('applicationField').textContent = course.applicationField;
+
+            // 显示六壬课象总览
+            let gridHTML = '';
+            Object.keys(courses).forEach(key => {
+                const c = courses[key];
+                const isActive = parseInt(key) === courseIndex ? 'style="background: #667eea; color: white;"' : '';
+                gridHTML += `
+                    <div class="course-item" ${isActive}>
+                        <div class="course-item-name">${c.name}</div>
+                        <div class="course-item-info">${c.meaning}</div>
+                        <div class="course-item-info">吉凶：${c.fortune}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('courseGrid').innerHTML = gridHTML;
+
+            // 显示结果区域
+            const resultSection = document.getElementById('resultSection');
+            resultSection.classList.remove('show');
+            setTimeout(() => {
+                resultSection.classList.add('show');
+            }, 10);
+        }
+
+        // 回车键快速占卜
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                divinate();
+            }
+        });
+
+        // 页面加载时自动填入当前时间
+        window.addEventListener('load', function() {
+            useCurrentTime();
+        });
     </script>
 </body>
 </html>
