@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xiaoliumin Fortune Telling Application</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 50px; }
+        h1 { color: #333; }
+        .fortune { background-color: #fff; border: 1px solid #ccc; padding: 20px; border-radius: 10px; display: inline-block; }
+        button { padding: 10px 15px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Xiaoliumin Fortune Telling Application</h1>
+    <div class="fortune" id="fortune">
+        <p>Your fortune will appear here!</p>
+    </div>
+    <button onclick="tellFortune()">Tell my fortune</button>
+
+    <script>
+        function randomFortune() {
+            const fortunes = [
+                "You will have a great day!",
+                "Something unexpected will happen today.",
+                "You will find what you are looking for.",
+                "A dream you have will come true.",
+                "You will meet someone special today."
+            ];
+            return fortunes[Math.floor(Math.random() * fortunes.length)];
+        }
+
+        function tellFortune() {
+            const fortuneElement = document.getElementById('fortune');
+            fortuneElement.innerHTML = `<p>${randomFortune()}</p>`;
+        }
+    </script>
+</body>
+</html>
