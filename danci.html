@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>英语单词学习小程序</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f7fa;
+      margin: 0;
+      padding: 0;
+    }
+    #app {
+      max-width: 420px;
+      margin: 30px auto;
+      background: white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+      padding: 32px 24px;
+      border-radius: 12px;
+      position: relative;
+    }
+    .hide { display: none; }
+    h2 { margin-top: 0; }
+    button {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      margin: 12px 0;
+      font-size: 1.1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+      background: #409eff;
+      color: white;
+      letter-spacing: 2px;
+      transition: background .2s;
+    }
+    button:active { background: #2272be; }
+    input, select {
+      font-size: 1.1rem;
+      padding: 7px;
+      width: 95%;
+      box-sizing: border-box;
+      margin: 8px 0;
+    }
+    .choice {
+      margin: 7px 0;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      cursor: pointer;
+      transition: background .18s;
+      background: #fafcff;
+    }
+    .choice.correct { background: #dcffe7; border: 1.5px solid #88d19a;}
+    .choice.incorrect { background: #ffd6cf; border: 1.5px solid #ff8b8b;}
+    .center { text-align: center; }
+    .msg { margin:12px 0; font-weight:bold;}
+    .small { font-size: 0.97rem; color: #888;}
+    /* 右下角退出按钮 */
+    #quit-btn {
+      display: none;
+      position: fixed;
+      right: 32px;
+      bottom: 32px;
+      z-index: 999;
+      background: #bbb;
+      color: #222;
+      font-size: 1.07rem;
+      width: 72px;
+      height: 44px;
+      border-radius: 24px;
+      border: none;
+      box-shadow: 0 2px 7px rgba(0,0,0,0.10);
+      cursor: pointer;
+      opacity: 0.90;
+    }
+    #quit-btn:hover {background: #fc9c9c;}
+    @media (max-width:520px) {
+      #app {padding:10vw 3vw;}
+      #quit-btn {right: 5vw; bottom: 5vw;}
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="main">
+    <h2 class="center">英语单词学习</h2>
+    <button id="add-word-btn">添加新生词</button>
+    <button id="start-quiz-btn">生词考核</button>
+    <button id="wrong-quiz-btn">错题练习</button>
+    <div class="small center">数据保存在本地浏览器</div>
+  </div>
+
+  <div id="add-word-view" class="hide">
+    <h2>添加新生词</h2>
+    <input id="word" placeholder="请输入英文单词（如 duck ）" autocomplete="off">
+    <input id="meaning" placeholder="请输入中文释义（如 鸭子 ）" autocomplete="off">
+    <div class="msg" id="add-word-msg"></div>
+    <button id="save-word-btn">保存</button>
+    <button id="back-main1-btn" type="button">返回主页</button>
+  </div>
+
+  <div id="quiz-view" class="hide">
+    <h2 id="quiz-title"></h2>
+    <div id="quiz-question" class="center" style="font-size:1.5em;"></div>
+    <div id="quiz-choices"></div>
+    <div class="msg" id="quiz-msg"></div>
+  </div>
+
+  <div id="result-view" class="hide">
+    <h2>考核结果</h2>
+    <div id="result-detail" class="center" style="font-size:1.1em;"></div>
+    <button id="back-main2-btn" type="button">返回主页</button>
+  </div>
+</div>
+<!-- 退出按钮放在 app 外面，覆盖整个页面右下角，方便浮动定位 -->
+<button id="quit-btn" style="display:none;">退出</button>
+<script>
+const getWords = () => JSON.parse(localStorage.getItem('words') || '[]');
+const setWords = arr => localStorage.setItem('words', JSON.stringify(arr));
+const getWrongs = () => JSON.parse(localStorage.getItem('wrongs') || '[]');
+const setWrongs = arr => localStorage.setItem('wrongs', JSON.stringify(arr));
+
+function show(view) {
+  ["main","add-word-view","quiz-view","result-view"].forEach(id=>{
+    document.getElementById(id).classList.add('hide');
+  });
+  document.getElementById(view).classList.remove('hide');
+  // 退出按钮逻辑
+  if(view==="quiz-view"){
+    document.getElementById("quit-btn").style.display="block";
+  }else{
+    document.getElementById("quit-btn").style.display="none";
+  }
+}
+
+// 随机打乱
+function shuffle(arr) {
+  let a = arr.slice();
+  for(let i=a.length; i; --i) {
+    let j = Math.floor(Math.random()*i);
+    [a[i-1],a[j]]=[a[j],a[i-1]];
+  }
+  return a;
+}
+
+document.getElementById('add-word-btn').onclick = function(){
+  show('add-word-view');
+  document.getElementById('word').value='';
+  document.getElementById('meaning').value='';
+  document.getElementById('add-word-msg').innerText='';
+};
+document.getElementById('back-main1-btn').onclick = ()=>show('main');
+document.getElementById('save-word-btn').onclick = function(){
+  let w = document.getElementById('word').value.trim();
+  let m = document.getElementById('meaning').value.trim();
+  if(!w||!m){
+    document.getElementById('add-word-msg').innerText='英文或中文不能为空';
+    return;
+  }
+  let arr = getWords();
+  if(arr.some(e=>e[0].toLowerCase() === w.toLowerCase())){
+    document.getElementById('add-word-msg').innerText = '单词已存在';
+    return;
+  }
+  arr.push([w,m]);
+  setWords(arr);
+  document.getElementById('add-word-msg').innerText='保存成功！';
+  setTimeout(()=>show('main'),1000);
+};
+
+// 生词考核
+document.getElementById('start-quiz-btn').onclick = ()=>{
+  let list = getWords();
+  if(list.length<4){
+    alert('需至少4个生词才能进行考核');
+    return;
+  }
+  startQuiz(list,'生词考核');
+};
+
+// 错题练习
+document.getElementById('wrong-quiz-btn').onclick = ()=>{
+  let list = getWrongs();
+  if(list.length===0){
+    alert('没有错题');
+    show('main');
+    return;
+  }
+  // 错题练习时 1 个以上即可
+  startQuiz(list,'错题练习');
+};
+
+let quizState = {
+  quizList:[],
+  curr:0,
+  score:0,
+  wrongs:[],
+  mode:'',
+  correctWrongs:[], // 错题练习时做对的题目
+  quizLength:0
+};
+
+function makeChoiceOptions(allWords, currWord) {
+  let pool = allWords.filter(e=>e[0]!==currWord[0]);
+  // 错题数量小于4选项时，从总单词中补充错误选项
+  let all = getWords();
+  let more = all.filter(e=>!pool.some(p=>p[0]===e[0]) && e[0]!=currWord[0]);
+  pool = pool.concat(more);
+  let wrongs = shuffle(pool).slice(0,3).map(e=>e[1]);
+  let right = currWord[1];
+  let opts = shuffle([right, ...wrongs]);
+  return opts;
+}
+
+function startQuiz(list, mode){
+  quizState = {
+    quizList: shuffle(list),
+    curr: 0,
+    score: 0,
+    wrongs: [],
+    mode: mode,
+    correctWrongs: [],
+    quizLength: list.length
+  };
+  show('quiz-view');
+  document.getElementById('quiz-title').innerText = mode;
+  nextQuiz();
+  // 显示退出按钮
+  document.getElementById('quit-btn').style.display="block";
+}
+
+function nextQuiz(){
+  let {quizList, curr, mode, quizLength} = quizState;
+  // 答完
+  if(curr>=quizList.length){
+    processWrongsUpdate(); // 保存/处理错题本
+    showResult();
+    return;
+  }
+  let allWords = mode==='生词考核' ? getWords() : (getWrongs().length ? getWrongs() : quizList);
+  let w = quizState.quizList[curr];
+  document.getElementById('quiz-question').innerText = w[0];
+  let opts = makeChoiceOptions(allWords,w);
+  let box = document.getElementById('quiz-choices');
+  box.innerHTML = '';
+  opts.forEach((mean,i)=>{
+    let d = document.createElement('div');
+    d.innerText = String.fromCharCode(65+i)+'. '+mean;
+    d.className = 'choice';
+    d.onclick = ()=>chooseAnswer(mean,w[1],w);
+    box.appendChild(d);
+  });
+  document.getElementById('quiz-msg').innerText = '';
+}
+
+// 退出按钮逻辑
+document.getElementById('quit-btn').onclick = ()=>{
+  // 退出时已经做过的题目要保存错题
+  processWrongsUpdate();
+  show('main');
+};
+
+function processWrongsUpdate(){
+  // 只会在“生词考核”或“错题练习”结束/退出时调用
+  if(quizState.mode==='生词考核'){
+    // 错题加入错题本
+    if(quizState.wrongs.length>0){
+      let oldWrongs = getWrongs();
+      let wrongSet = new Set(oldWrongs.map(e=>e[0]));
+      let toAdd = quizState.wrongs.filter(w=>!wrongSet.has(w[0]));
+      if(toAdd.length) setWrongs(oldWrongs.concat(toAdd));
+    }
+  }else if(quizState.mode==='错题练习'){
+    // 错题练习时，做对的题目要删除
+    let corrects = quizState.correctWrongs;
+    if(corrects.length>0){
+      let oldWrongs = getWrongs();
+      let left = oldWrongs.filter(w=>!corrects.some(c=>c[0]===w[0]));
+      setWrongs(left);
+    }
+    // 做错的题，保留在错题本
+  }
+}
+
+// 答题
+function chooseAnswer(choice,answer,currWord){
+  let choices = document.querySelectorAll('.choice');
+  choices.forEach(ch=>{
+    if(ch.innerText.endsWith(answer)) ch.classList.add('correct');
+    if(ch.innerText.endsWith(choice) && choice!==answer) ch.classList.add('incorrect');
+    ch.onclick=null;
+  });
+  let correct = (choice===answer);
+  document.getElementById('quiz-msg').innerText = correct ? '回答正确！' : `错误，正确答案：${answer}`;
+  if(correct) {
+    quizState.score+=1;
+    if(quizState.mode==='错题练习'){
+      quizState.correctWrongs.push(currWord);
+    }
+  } else {
+    quizState.wrongs.push(currWord);
+  }
+  setTimeout(()=>{
+    quizState.curr+=1;
+    nextQuiz();
+  }, 2000);
+}
+
+function showResult(){
+  show('result-view');
+  document.getElementById("quit-btn").style.display = "none";
+  let detail = '';
+  if(quizState.quizLength===0){
+    detail = '没有题目。';
+  }else{
+    detail = `本次答题成绩：${quizState.score} / ${quizState.quizLength}<br>`;
+    if(quizState.wrongs.length>0){
+      if(quizState.mode==='错题练习'){
+        detail += `<span style="color:#b80000;">本次做错题数：${quizState.wrongs.length}</span>，做对的题已从错题本移除`;
+      }else{
+        detail += `<span style="color:#b80000;">错误题数：${quizState.wrongs.length} （已保存到错题本）</span>`;
+      }
+    }else{
+      detail += `<span style="color:#22b81a;">全部正确！没有错题。</span>`;
+    }
+  }
+  document.getElementById('result-detail').innerHTML = detail;
+}
+document.getElementById('back-main2-btn').onclick = ()=>show('main');
+show('main');
+</script>
+</body>
+</html>
